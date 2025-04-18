@@ -1,48 +1,96 @@
-import streamlit as st
-import pickle
+import os
+import joblib
 import pandas as pd
-import numpy as np
+import streamlit as st
 
-# Load the pre-trained model and data
-similarity ="similarity_compressed.joblib"
-medicine_dict = "medicine_dict_compressed.joblib"
+# Local file names
+SIMILARITY_FILE = "similarity_compressed.joblib"
+MEDICINE_DICT_FILE = "medicine_dict_compressed.joblib"
 
-# Convert medicine_dict back to DataFrame
-medicines = pd.DataFrame.from_dict(medicine_dict)
 
-# Function to get recommendations based on a medicine name
-def recommend(medicine_name):
+# Load the compressed similarity matrix and medicine_dict
+similarity = joblib.load(SIMILARITY_FILE)
+medicine_dict = joblib.load(MEDICINE_DICT_FILE)
+
+# Convert the dictionary back to a DataFrame
+medicines = pd.DataFrame(medicine_dict)
+
+# Recommendation function
+def recommend(medicine):
     try:
-        # Find the index of the medicine in the DataFrame
-        idx = medicines[medicines['Drug_Name'].str.lower() == medicine_name.lower()].index[0]
+        medicine_index = medicines[medicines['Drug_Name'] == medicine].index[0]
     except IndexError:
-        return "Medicine not found in the dataset."
+        return ["Medicine not found in the dataset."]
+    
+    distances = similarity[medicine_index]
+    medicines_list = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:6]
 
-    # Get the similarity scores for this medicine
-    sim_scores = list(enumerate(similarity[idx]))
-
-    # Sort the medicines by similarity score
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)[1:6]  # Exclude the first one (it's the medicine itself)
-
-    # Get the recommended medicines
-    recommended_medicines = [medicines.iloc[i[0]].Drug_Name for i in sim_scores]
+    recommended_medicines = []
+    for i in medicines_list:
+        recommended_medicines.append(medicines.iloc[i[0]].Drug_Name)
     return recommended_medicines
 
-# Streamlit app layout
-st.title('Drug Recommendation System')
+# Title of the Application
+st.markdown("<h1 style='text-align: center; color: #007bff;'>Drug Recommendation System</h1>", unsafe_allow_html=True)
 
-# Input box for user to enter medicine name
-medicine_name = st.text_input('Enter Medicine Name', '')
+# Image (center the image and set custom width)
+from PIL import Image
+image = Image.open('images/medss.png')  # Make sure to have this image in the correct path
 
-# Show recommendations when the button is clicked
-if st.button('Get Recommendations'):
-    if medicine_name:
-        recommendations = recommend(medicine_name)
-        if isinstance(recommendations, list):
-            st.write('Recommended Drugs:')
-            for drug in recommendations:
-                st.write(drug)
-        else:
-            st.write(recommendations)
-    else:
-        st.write("Please enter a medicine name.")
+# Create empty columns to center the image
+col1, col2, col3 = st.columns([1, 2, 1])
+
+with col2:
+    st.image(image, caption='', width=350)  # Set width to 350px
+
+# Searchbox and recommendation
+st.markdown("<h3 style='color: #2c3e50;'>Find Similar Drugs:</h3>", unsafe_allow_html=True)
+
+# Organize layout with columns for better visual separation
+col1, col2 = st.columns([3, 1])
+
+with col1:
+    selected_medicine_name = st.selectbox('Select a medicine to get similar recommendations:', medicines['Drug_Name'].values)
+
+with col2:
+    # Add a button with a customized style
+    st.markdown("""
+    <style>
+        .stButton button {
+            margin-top: 8px;
+            background-color: #28a745;
+            color: white;
+            border-radius: 10px;
+            padding: 0.5em;
+            width: 100%;
+            height: 100%;
+        }
+    </style>""", unsafe_allow_html=True)
+    recommend_btn = st.button('Recommend Drug')
+
+# Display recommendations if the button is pressed
+if recommend_btn:
+    recommendations = recommend(selected_medicine_name)
+    
+    st.markdown("<h3 style='color: #34495e;'>Recommended Drugs:</h3>", unsafe_allow_html=True)
+    
+    # Create a new column layout for recommendations to use full width
+    for idx, drug in enumerate(recommendations, start=1):
+        st.markdown(f"""
+        <style>
+            .recommendation-link {{
+                color: lightgrey;
+                text-decoration: none;
+            }}
+            .recommendation-link:hover {{
+                color: #007bff;
+                text-decoration: underline;
+            }}
+        </style>
+        <p style='font-size:18px; border:4px solid #34495e; padding: 10px; border-radius:20px;'>
+            <a href='https://pharmeasy.in/search/all?name={drug}' class='recommendation-link'>{drug}</a>
+        </p>""", unsafe_allow_html=True)
+
+# Footer for credits or additional information
+st.markdown("<hr>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #7f8c8d;'>Made by <span style='color: orange'>Srijan Arya</span> | <a href='https://github.com/Srijan-Arya/Drug-Recommendation-System' style='text-decoration:none'>Github</a> © 2024</p>", unsafe_allow_html=True)
