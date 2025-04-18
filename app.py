@@ -42,26 +42,3 @@ if st.button('Get Recommendations'):
             st.error(recommendations)
     else:
         st.warning("Please enter a medicine name.")
-
-# To make this accessible via HTTP requests (GET or POST)
-import requests
-
-def api_request(medicine_name):
-    # Call the recommendation function and return the result as JSON
-    recommendations = recommend(medicine_name)
-    return json.dumps({'recommendations': recommendations})
-
-# Handle GET/POST requests if needed
-from flask import Flask, request, jsonify
-
-app = Flask(__name__)
-
-@app.route('/recommend', methods=['POST'])
-def get_recommendations_api():
-    data = request.get_json()
-    medicine_name = data.get('medicine_name', '')
-    recommendations = recommend(medicine_name)
-    return jsonify({'recommendations': recommendations})
-
-if __name__ == '__main__':
-    app.run(debug=True)
