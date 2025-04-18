@@ -4,8 +4,8 @@ import pandas as pd
 import numpy as np
 
 # Load the pre-trained model and data
-similarity = pickle.load(open('similarity1.pkl', 'rb'))
-medicine_dict = pickle.load(open('medicine_dict1.pkl', 'rb'))
+similarity ="similarity_compressed.joblib"
+medicine_dict = "medicine_dict_compressed.joblib"
 
 # Convert medicine_dict back to DataFrame
 medicines = pd.DataFrame.from_dict(medicine_dict)
