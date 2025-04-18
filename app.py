@@ -1,9 +1,9 @@
+from threading import Thread
 import streamlit as st
 import pandas as pd
 import numpy as np
 import pickle
 import gzip
-import json
 from flask import Flask, request, jsonify
 
 # Initialize Flask app
@@ -63,11 +63,10 @@ def streamlit_app():
         else:
             st.warning("Please enter a medicine name.")
 
-# Run Streamlit app in the background (if needed for testing)
+# Run Streamlit app in the background (optional)
 if __name__ == '__main__':
-    from threading import Thread
-    # Start Streamlit app in a background thread (optional)
+    # Start Streamlit app in a background thread
     Thread(target=streamlit_app).start()
-    
-    # Run Flask API
-    app.run(debug=True, host='0.0.0.0', port=5000)
+
+    # Run Flask API (use reloader=False to avoid issues)
+    app.run(debug=True, host='0.0.0.0', port=5000, use_reloader=False)
