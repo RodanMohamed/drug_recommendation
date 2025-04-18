@@ -1,4 +1,6 @@
-flask
+joblib
 pandas
-numpy
-gunicorn
+streamlit
+requests
+Pillow
+flask
