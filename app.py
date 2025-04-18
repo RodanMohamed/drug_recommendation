@@ -63,10 +63,15 @@ def streamlit_app():
         else:
             st.warning("Please enter a medicine name.")
 
-# Run Streamlit app in the background (optional)
+# Run Streamlit app in the background
+def run_streamlit():
+    import os
+    os.system('streamlit run streamlit_app.py')
+
+# Main function to run both Flask and Streamlit
 if __name__ == '__main__':
     # Start Streamlit app in a background thread
-    Thread(target=streamlit_app).start()
+    Thread(target=run_streamlit).start()
 
-    # Run Flask API (use reloader=False to avoid issues)
-    app.run(debug=True, host='0.0.0.0', port=5000, use_reloader=False)
+    # Run Flask API in the main thread
+    app.run(debug=True, host='0.0.0.0', port=5000)
